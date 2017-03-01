@@ -46,7 +46,7 @@ bot.onText(/\/regme/, function (msg, match) {
 	}
 
 		// SEND DATE TO ARRAY
-		usersHASH[chatId][userId] = {'uid':userId, 'rang':userRole, 'reputation':userRep}
+		usersHASH[chatId][userId] = {'uid':userId, 'uName':"@" + userName, 'rang':userRole, 'reputation':userRep}
 	}
 	else if(userId == chatId) bot.sendMessage(chatId, "Получить звание можно только в публичной группе!");
 	else bot.sendMessage(chatId, "Ты уже получил звание!");
@@ -57,19 +57,30 @@ bot.onText(/\/regme/, function (msg, match) {
 	fs.writeFileSync('users.json', usersJSON);
 });
 
-bot.onText(/\/repup (.+) (.+)/, function (msg, match) {
-	// \/repup @cosmos404 10
+	// /up @cosmos404 10
+bot.onText(/\/up (.+) (.+)/, function (msg, match) {
+
 	var chatId = msg.chat.id;
 	var userId = msg.from.id;
 	var userName = msg.from.username;
-
 	var repUpName = match[1];
-	var repUp = match[2];
+	var repUp = parseInt(match[2]);
+	var transferConfirm = false;
 
 	if(usersHASH[chatId][userId] != undefined && usersHASH[chatId][userId].reputation >= repUp){
-		usersHASH[chatId][userId].reputation -= repUp
-		console.log("Кому: " + repUpName + ". Сколько: " + repUp + ". Осталось: " + usersHASH[chatId][userId].reputation);
-		bot.sendMessage(chatId, "Поздравляю! Вы передали: " + repUp + ", пользователю: " + repUpName + ". Теперь ваша репутация равна: " + usersHASH[chatId][userId].reputation + ".");
+		
+		for(var i in usersHASH[chatId]) {
+			for(var j in usersHASH[chatId][i]){
+				if(usersHASH[chatId][i].uName == repUpName){
+			 		usersHASH[chatId][i].reputation += repUp;
+			 		usersHASH[chatId][userId].reputation -= repUp;
+			 		transferConfirm = true;
+			 		bot.sendMessage(chatId, "Поздравляю! Вы передали: " + repUp + ", пользователю: " + repUpName + ". Теперь ваша репутация равна: " + usersHASH[chatId][userId].reputation + ".");
+			 		break;
+			 	}
+			}
+		}
+		if(!transferConfirm) bot.sendMessage(chatId, "Пользователь, которому вы хотите передать репутацию не зарегистрирован!");
 	}
 	else if(usersHASH[chatId][userId] == undefined)
 	{
@@ -88,11 +99,14 @@ bot.onText(/\/repup (.+) (.+)/, function (msg, match) {
 });
 
 
-bot.onText(/\/role/, function (msg, match) {
+bot.onText(/\/rang/, function (msg, match) {
 	var chatId = msg.chat.id;
 	var userId = msg.from.id;
 	var userName = msg.from.username;
-	bot.sendMessage(chatId, "Твой ранг: " + usersHASH[chatId][userId].rang + ", а также у тебя: " + usersHASH[chatId][userId].reputation + " репутации.");
+		if(usersHASH[chatId] != undefined && usersHASH[chatId][userId] != undefined) {
+			bot.sendMessage(chatId, "Твой ранг: " + usersHASH[chatId][userId].rang + ", а также у тебя: " + usersHASH[chatId][userId].reputation + " репутации.");
+		}
+		else bot.sendMessage(chatId, "Вы не зарегистрированы. Отправьте /regme для регистрации!");
 });
 
 bot.onText(/\/log/, function (msg, match) {
@@ -102,5 +116,3 @@ bot.onText(/\/log/, function (msg, match) {
 	console.log("0. UID: " + userId + ". Chat ID: " + chatId);
     console.log(usersHASH[chatId]);
 });
-
-
