@@ -1,0 +1,15 @@
+{
+  "name": "bacereus_bot",
+  "version": "1.0.0",
+  "description": "Reputation bot for telegram.",
+  "main": "app.js",
+  "dependencies": {
+    "node-telegram-bot-api": "^0.23.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node app.js"
+  },
+  "author": "cosmos404",
+  "license": "MIT"
+}
