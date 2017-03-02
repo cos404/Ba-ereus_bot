@@ -67,7 +67,7 @@ bot.onText(/\/up (.+) (.+)/, function (msg, match) {
 	var repUp = parseInt(match[2]);
 	var transferConfirm = false;
 
-	if(usersHASH[chatId][userId] != undefined && usersHASH[chatId][userId].reputation >= repUp){
+	if(usersHASH[chatId] != undefined && usersHASH[chatId][userId] != undefined && usersHASH[chatId][userId].reputation >= repUp){
 		
 		for(var i in usersHASH[chatId]) {
 			for(var j in usersHASH[chatId][i]){
@@ -82,7 +82,7 @@ bot.onText(/\/up (.+) (.+)/, function (msg, match) {
 		}
 		if(!transferConfirm) bot.sendMessage(chatId, "Пользователь, которому вы хотите передать репутацию не зарегистрирован!");
 	}
-	else if(usersHASH[chatId][userId] == undefined)
+	else if(usersHASH[chatId] == undefined || usersHASH[chatId][userId] == undefined)
 	{
 		bot.sendMessage(chatId, "Вы не зарегистрированы! Для регистрации отправьте: /regme");
 	}
