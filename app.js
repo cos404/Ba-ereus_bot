@@ -1,6 +1,6 @@
 var TelegramBot = require('node-telegram-bot-api');
-var token = '324534697:AAFSKI9XahVAY-vQGoWlaLRZw0a4lyLo82A';
-var bot = new TelegramBot(token, {polling: true});
+var config = require('./config.js')
+var bot = new TelegramBot(config.telegram_api_key, {polling: true});
 var fs = require("fs")
 
 // .parse - convert JSON to JS code
