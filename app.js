@@ -3,18 +3,16 @@ var config = require('./config.js')
 var bot = new TelegramBot(config.telegram_api_key, {polling: true});
 var fs = require("fs")
 
-// .parse - convert JSON to JS code
 var usersHASH = JSON.parse(fs.readFileSync('users.json', 'utf8'));
 
-bot.getMe().then(function(me)
-{
+bot.getMe().then((me) => {
     console.log('Hello! My name is %s!', me.first_name);
     console.log('My id is %s.', me.id);
     console.log('And my username is @%s.', me.username);
 });
 
 
-bot.onText(/\/regme/, function (msg, match) {
+bot.onText(/\/regme/, (msg, match) => {
 	var userRole;
 	var userRep;
 	var chatId = msg.chat.id;
@@ -51,14 +49,12 @@ bot.onText(/\/regme/, function (msg, match) {
 	else if(userId == chatId) bot.sendMessage(chatId, "Получить звание можно только в публичной группе!");
 	else bot.sendMessage(chatId, "Ты уже получил звание!");
 
-	// .stringify - convert JS cpde to JSON (hash, replace, formatting)
 	usersJSON = JSON.stringify(usersHASH, null,	'\t');
-	// SAVE DATA IN JSON
 	fs.writeFileSync('users.json', usersJSON);
 });
 
 	// /up @cosmos404 10
-bot.onText(/\/up (.+) (.+)/, function (msg, match) {
+bot.onText(/\/up (.+) (.+)/, (msg, match) => {
 
 	var chatId = msg.chat.id;
 	var userId = msg.from.id;
@@ -91,15 +87,12 @@ bot.onText(/\/up (.+) (.+)/, function (msg, match) {
 	}
 	else bot.sendMessage(chatId, "Я не знаю что, но что-то пошло не так!");
 
-
-	// .stringify - convert JS cpde to JSON (hash, replace, formatting)
 	usersJSON = JSON.stringify(usersHASH, null,	'\t');
-	// SAVE DATA IN JSON
 	fs.writeFileSync('users.json', usersJSON);
 });
 
 
-bot.onText(/\/rang/, function (msg, match) {
+bot.onText(/\/rang/, (msg, match) => {
 	var chatId = msg.chat.id;
 	var userId = msg.from.id;
 	var userName = msg.from.username;
@@ -109,10 +102,26 @@ bot.onText(/\/rang/, function (msg, match) {
 		else bot.sendMessage(chatId, "Вы не зарегистрированы. Отправьте /regme для регистрации!");
 });
 
-bot.onText(/\/log/, function (msg, match) {
+bot.onText(/\/log/, (msg, match) => {
 	var userId = msg.from.id;
 	var userName = msg.from.username;
 	var chatId = msg.chat.id;
 	console.log("0. UID: " + userId + ". Chat ID: " + chatId);
     console.log(usersHASH[chatId]);
+});
+
+bot.on('message', (msg) => {
+	var chatId = msg.chat.id;
+	var userId = msg.from.id;
+	var msg = msg.text;
+	var msgText =  msg.split(' ')[0]; 
+	if(msgText != "/rang" && msgText != "/up" && msgText != "/reg" && msgText != "/regme" && msgText != "/log"){
+		if(msg.split(' ').length > 10 && msg.trim().length > 25){
+			usersHASH[chatId][userId].reputation += 3;
+		}
+		else if(msg.split(' ').length <= 4 && msg.trim().length <= 10) usersHASH[chatId][userId].reputation -= 1;
+		
+		sersJSON = JSON.stringify(usersHASH, null,	'\t');
+		fs.writeFileSync('users.json', usersJSON);
+	}
 });
