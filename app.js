@@ -1,6 +1,7 @@
 var TelegramBot = require('node-telegram-bot-api');
 var config = require('./config.js')
 var bot = new TelegramBot(config.telegram_api_key, {polling: true});
+
 var fs = require("fs")
 
 var usersHASH = JSON.parse(fs.readFileSync('users.json', 'utf8'));
@@ -11,6 +12,23 @@ bot.getMe().then((me) => {
     console.log('And my username is @%s.', me.username);
 });
 
+
+bot.onText(/\/reg/, (msg, match) => {
+	var chatId = msg.chat.id;
+	var userId = msg.from.id;
+	var userName = msg.from.username;
+
+	if(usersHASH[chatId] == undefined || usersHASH[chatId][userId] == undefined && userId != chatId){
+		usersHASH[chatId] = {[userId]:{'uid':userId, 'uName':"@" + userName, 'rang':"Newbie", 'reputation':0}};
+		bot.sendMessage(chatId, "Поздравляю! Твой ранг: Newbie, а также у тебя 0 репутации.");
+	}
+	else if(userId == chatId) bot.sendMessage(chatId, "Получить звание можно только в публичной группе!");
+	else bot.sendMessage(chatId, "Ты уже получил звание!");
+
+	usersJSON = JSON.stringify(usersHASH, null,	'\t');
+	fs.writeFileSync('users.json', usersJSON);
+
+});	
 
 bot.onText(/\/regme/, (msg, match) => {
 	var userRole;
@@ -24,7 +42,7 @@ bot.onText(/\/regme/, (msg, match) => {
 	
 	// CHECK AND ADD USER TO JSON
 	if(usersHASH[chatId] == undefined){
-		usersHASH[chatId] = {};
+		usersHASH[chatId] = {users:{}};
 	}
 	else console.log("Chat found!");
 
@@ -115,13 +133,14 @@ bot.on('message', (msg) => {
 	var userId = msg.from.id;
 	var msg = msg.text;
 	var msgText =  msg.split(' ')[0]; 
-	if(msgText != "/rang" && msgText != "/up" && msgText != "/reg" && msgText != "/regme" && msgText != "/log"){
+	if(msgText != "/rang" && msgText != "/up" && msgText != "/reg" && msgText != "/regme" && msgText != "/log" && usersHASH[chatId] != undefined && usersHASH[chatId][userId] != undefined){
 		if(msg.split(' ').length > 10 && msg.trim().length > 25){
 			usersHASH[chatId][userId].reputation += 3;
 		}
 		else if(msg.split(' ').length <= 4 && msg.trim().length <= 10) usersHASH[chatId][userId].reputation -= 1;
 		
-		sersJSON = JSON.stringify(usersHASH, null,	'\t');
+		usersJSON = JSON.stringify(usersHASH, null,	'\t');
 		fs.writeFileSync('users.json', usersJSON);
 	}
 });
+
