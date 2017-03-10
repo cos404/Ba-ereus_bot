@@ -4,12 +4,21 @@
   "description": "Reputation bot for telegram.",
   "main": "app.js",
   "dependencies": {
-    "node-telegram-bot-api": "^0.23.3"
+    "node-telegram-bot-api": "^0.23.3",
+    "mongoose": "4.6.6"
   },
   "devDependencies": {},
   "scripts": {
     "test": "node app.js"
   },
   "author": "cosmos404",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cos404/BaCereus_bot.git"
+  },
+  "bugs": {
+    "url": "https://github.com/cos404/BaCereus_bot/issues"
+  },
+  "homepage": "https://github.com/cos404/BaCereus_bot#readme"
 }

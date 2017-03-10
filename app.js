@@ -1,10 +1,7 @@
+var config = require('./config.js');
 var TelegramBot = require('node-telegram-bot-api');
-var config = require('./config.js')
 var bot = new TelegramBot(config.telegram_api_key, {polling: true});
-
-var fs = require("fs")
-
-var usersHASH = JSON.parse(fs.readFileSync('users.json', 'utf8'));
+var models = require('./models/index');
 
 bot.getMe().then((me) => {
     console.log('Hello! My name is %s!', me.first_name);
@@ -12,66 +9,67 @@ bot.getMe().then((me) => {
     console.log('And my username is @%s.', me.username);
 });
 
-
-bot.onText(/\/reg/, (msg, match) => {
+bot.onText(/\/reg$|\/reg@Bacereus_bot/, (msg, match) => {
 	var chatId = msg.chat.id;
 	var userId = msg.from.id;
-	var userName = msg.from.username;
+	var userName = "@" + msg.from.username;
+	var user = new models.User({
+		groupId: chatId,
+		userId: userId,
+		userName: userName,
+	});
 
-	if(usersHASH[chatId] == undefined || usersHASH[chatId][userId] == undefined && userId != chatId){
-		usersHASH[chatId] = {[userId]:{'uid':userId, 'uName':"@" + userName, 'rang':"Newbie", 'reputation':0}};
-		bot.sendMessage(chatId, "Поздравляю! Твой ранг: Newbie, а также у тебя 0 репутации.");
-	}
-	else if(userId == chatId) bot.sendMessage(chatId, "Получить звание можно только в публичной группе!");
-	else bot.sendMessage(chatId, "Ты уже получил звание!");
-
-	usersJSON = JSON.stringify(usersHASH, null,	'\t');
-	fs.writeFileSync('users.json', usersJSON);
-
+	user.save(function(err){
+	if (err) {
+			console.log(err);
+		}
+	else {
+			bot.sendMessage(chatId, "Поздравляю! Твой ранг: Newbie, а также у тебя 0 репутации.");
+		}
+	});
 });	
 
-bot.onText(/\/regme/, (msg, match) => {
-	var userRole;
+bot.onText(/\/regme$|\/regme@Bacereus_bot/, (msg, match) => {
 	var userRep;
 	var chatId = msg.chat.id;
 	var userId = msg.from.id;
-	var userName = msg.from.username;
+	var userName = "@" + msg.from.username;
 
 
 	randomVar = Math.floor((Math.random() * 10) + 1);
-	
-	// CHECK AND ADD USER TO JSON
-	if(usersHASH[chatId] == undefined){
-		usersHASH[chatId] = {users:{}};
-	}
-	else console.log("Chat found!");
 
-	if(usersHASH[chatId][userId] == undefined && userId != chatId){
-
-		switch(true) {
+	switch(true) {
 		case randomVar <= 5: 
-			userRole = "Shut";
-			userRep = -100;
-			bot.sendMessage(chatId, "Поздравляю! Ты неудачник! И твое звание: " + userRole + ", а также поздравляю тебя с тем, что твоя репутация равна:" + userRep);
+				userRep = -10;
 		break;
 		case randomVar > 5: 
-			userRole = "Czar";
-			userRep = 100;
-			bot.sendMessage(chatId, "Поздравляю! Оказывается ты везунчик! Твое звание: " + userRole + ", а также поздравляю тебя с тем, что твоя репутация равна:" + userRep + ". Советую сегодня сыграть тебе в лоторею! Сегодня явно твой день.");
+				userRep = 10;
 		break;
-	}
+	};
 
-		// SEND DATE TO ARRAY
-		usersHASH[chatId][userId] = {'uid':userId, 'uName':"@" + userName, 'rang':userRole, 'reputation':userRep}
-	}
-	else if(userId == chatId) bot.sendMessage(chatId, "Получить звание можно только в публичной группе!");
-	else bot.sendMessage(chatId, "Ты уже получил звание!");
+	var user = new models.User({
+		groupId: chatId,
+		userId: userId,
+		userName: userName,
+		reputation: userRep,
+	});
 
-	usersJSON = JSON.stringify(usersHASH, null,	'\t');
-	fs.writeFileSync('users.json', usersJSON);
+	user.save((err) => {
+		if (err) {
+				console.log(err);
+			}
+		else {
+			if(userRep < 0){
+				bot.sendMessage(chatId, "Поздравляю! Ты неудачник! И твое звание: " + "#userRole#" + ", а также поздравляю тебя с тем, что твоя репутация равна:" + userRep);
+			}
+			else{
+				bot.sendMessage(chatId, "Поздравляю! Оказывается ты везунчик! Твое звание: " + "#userRole#" + ", а также поздравляю тебя с тем, что твоя репутация равна:" + userRep + ". Советую сегодня сыграть тебе в лоторею! Сегодня явно твой день.");
+			}
+		}
+	});
 });
 
-	// /up @cosmos404 10
+// /up @cosmos404 10
 bot.onText(/\/up (.+) (.+)/, (msg, match) => {
 
 	var chatId = msg.chat.id;
@@ -79,53 +77,38 @@ bot.onText(/\/up (.+) (.+)/, (msg, match) => {
 	var userName = msg.from.username;
 	var repUpName = match[1];
 	var repUp = parseInt(match[2]);
-	var transferConfirm = false;
 
-	if(usersHASH[chatId] != undefined && usersHASH[chatId][userId] != undefined && usersHASH[chatId][userId].reputation >= repUp){
-		
-		for(var i in usersHASH[chatId]) {
-			for(var j in usersHASH[chatId][i]){
-				if(usersHASH[chatId][i].uName == repUpName){
-			 		usersHASH[chatId][i].reputation += repUp;
-			 		usersHASH[chatId][userId].reputation -= repUp;
-			 		transferConfirm = true;
-			 		bot.sendMessage(chatId, "Поздравляю! Вы передали: " + repUp + ", пользователю: " + repUpName + ". Теперь ваша репутация равна: " + usersHASH[chatId][userId].reputation + ".");
-			 		break;
-			 	}
-			}
-		}
-		if(!transferConfirm) bot.sendMessage(chatId, "Пользователь, которому вы хотите передать репутацию не зарегистрирован!");
-	}
-	else if(usersHASH[chatId] == undefined || usersHASH[chatId][userId] == undefined)
-	{
-		bot.sendMessage(chatId, "Вы не зарегистрированы! Для регистрации отправьте: /regme");
-	}
-	else if(usersHASH[chatId][userId].reputation < repUp){
-		bot.sendMessage(chatId, "Ваша репутация должна быть выше, чем та которой вы хотите поделиться! Ваша репутация равна: " + usersHASH[chatId][userId].reputation + ".");
-	}
-	else bot.sendMessage(chatId, "Я не знаю что, но что-то пошло не так!");
+	models.User.update({userName:repUpName, groupId: chatId}, {$inc:{reputation: +repUp}},(err, raw) => {
+		if (err) console.log(err);
+	});
 
-	usersJSON = JSON.stringify(usersHASH, null,	'\t');
-	fs.writeFileSync('users.json', usersJSON);
+	models.User.update({userId:userId, groupId: chatId}, {$inc:{reputation: -repUp}},(err, raw) => {
+		if (err) console.log(err);
+	});
 });
 
-
-bot.onText(/\/rang/, (msg, match) => {
+bot.onText(/\/rank$|\/rank@Bacereus_bot/, (msg, match) => {
 	var chatId = msg.chat.id;
 	var userId = msg.from.id;
-	var userName = msg.from.username;
-		if(usersHASH[chatId] != undefined && usersHASH[chatId][userId] != undefined) {
-			bot.sendMessage(chatId, "Твой ранг: " + usersHASH[chatId][userId].rang + ", а также у тебя: " + usersHASH[chatId][userId].reputation + " репутации.");
-		}
-		else bot.sendMessage(chatId, "Вы не зарегистрированы. Отправьте /regme для регистрации!");
+
+	models.User.findOne({ userId: userId, groupId: chatId}, function (err, user){
+		bot.sendMessage(chatId, "Твой ранг: " + "#rank#" + ", а также у тебя: " + user.reputation + " репутации.");
+	});
+});
+
+bot.onText(/\/rank (.+)$|\/rank (.+)@Bacereus_bot/, (msg, match) => {
+	var chatId = msg.chat.id;
+	var userName = match[1];
+
+	models.User.findOne({ userName: userName, groupId: chatId}, function (err, user){
+		bot.sendMessage(chatId, "Ранг " + userName + ": " + "#rank#" + ", а также у него: " + user.reputation + " репутации.");
+	});
 });
 
 bot.onText(/\/log/, (msg, match) => {
 	var userId = msg.from.id;
 	var userName = msg.from.username;
 	var chatId = msg.chat.id;
-	console.log("0. UID: " + userId + ". Chat ID: " + chatId);
-    console.log(usersHASH[chatId]);
 });
 
 bot.on('message', (msg) => {
@@ -133,14 +116,16 @@ bot.on('message', (msg) => {
 	var userId = msg.from.id;
 	var msg = msg.text;
 	var msgText =  msg.split(' ')[0]; 
-	if(msgText != "/rang" && msgText != "/up" && msgText != "/reg" && msgText != "/regme" && msgText != "/log" && usersHASH[chatId] != undefined && usersHASH[chatId][userId] != undefined){
+	if(msgText != "/rank" && msgText != "/up" && msgText != "/reg" && msgText != "/regme" && msgText != "/log"){
 		if(msg.split(' ').length > 10 && msg.trim().length > 25){
-			usersHASH[chatId][userId].reputation += 3;
+			models.User.update({userId:userId, groupId: chatId}, {$inc:{reputation: +3}},(err, raw) => {
+				if (err) console.log(err);
+			});
 		}
-		else if(msg.split(' ').length <= 4 && msg.trim().length <= 10) usersHASH[chatId][userId].reputation -= 1;
-		
-		usersJSON = JSON.stringify(usersHASH, null,	'\t');
-		fs.writeFileSync('users.json', usersJSON);
+		else if(msg.split(' ').length <= 4 && msg.trim().length <= 10) {
+			models.User.update({userId:userId, groupId: chatId}, {$inc:{reputation: -1}},(err, raw) => {
+				if (err) console.log(err);
+			});
+		}
 	}
 });
-
