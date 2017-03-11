@@ -2,13 +2,13 @@ const mongoose = require('../lib/mongoose');
 const Schema = mongoose.Schema;
 
 
-const rangSchema = new Schema({
+const rankSchema = new Schema({
   groupId: {
     type: Number,
     required: true,
     ref: 'group',
   },
-  rang: {
+  rank: {
     type: String,
     required: true,
   },
@@ -18,6 +18,6 @@ const rangSchema = new Schema({
   },
 });
 
-rangSchema.index({groupId: 1, reputation: 1},{unique: true});
+rankSchema.index({groupId: 1, reputation: 1},{unique: true});
 
-module.exports = mongoose.model('rang', rangSchema);
+module.exports = mongoose.model('rank', rankSchema);

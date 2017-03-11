@@ -8,6 +8,6 @@
 
 module.exports = {
   User: require('./user.js'),
-  Rang: require('./rang.js'),
+  Rank: require('./rank.js'),
   Setting: require('./user.js'),
 };

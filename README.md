@@ -8,7 +8,6 @@
 /up @cosmos404 10 — transmits the @cosmos404 ten reputation.</br>
 
 <h2>ToDo</h2></br>
-
 /daily — lottery</br>
 Group settings</br>
 Customized ranks</br>
