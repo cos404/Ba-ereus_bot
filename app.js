@@ -4,6 +4,9 @@ var models = require('./models/index');
 var TelegramBot = require('node-telegram-bot-api');
 var bot = new TelegramBot(config.telegram_api_key, {polling: true});
 
+var Admin = require('./admin.js');
+	admin = new Admin();
+
 bot.getMe().then((me) => {
     console.log('Hello! My name is %s!', me.first_name);
     console.log('My id is %s.', me.id);
@@ -109,6 +112,21 @@ bot.onText(/\/rank (.+)$|\/rank (.+)@Bacereus_bot/, (msg, match) => {
 		}).sort({reputation: -1});		
 	});
 });
+
+bot.onText(/\/addr (.+) (.+)$|\/addr (.+) (.+)@Bacereus_bot/, (msg, match) => {
+	var chatId = msg.chat.id;
+	var userId = msg.from.id;
+	var rank = match[1];
+	var reputation = match[2];
+
+	bot.getChatMember(chatId, userId).then((user) => {
+		if(user.status == "administrator" || user.status == "creator"){
+			admin.addr(chatId, rank, reputation);
+		};
+	});
+
+});
+
 
 bot.onText(/\/log/, (msg, match) => {
 	var userId = msg.from.id;
