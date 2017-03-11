@@ -24,11 +24,13 @@ bot.onText(/\/reg$|\/reg@Bacereus_bot/, (msg, match) => {
 	});
 
 	user.save(function(err){
-	if (err) {
-			console.log(err);
-		}
-	else {
-			bot.sendMessage(chatId, "Поздравляю! Твой ранг: Newbie, а также у тебя 0 репутации.");
+		if (err) {
+				console.log(err);
+			}
+		else {
+			models.Rank.findOne({reputation: {$lte: 0}, groupId: chatId}, (err, rank) => {
+				bot.sendMessage(chatId, `Поздравляю! Твой ранг: ${rank.rank}, а также у тебя 0 репутации.`);
+			}).sort({reputation: -1});		
 		}
 	});
 });	
@@ -38,7 +40,6 @@ bot.onText(/\/regme$|\/regme@Bacereus_bot/, (msg, match) => {
 	var chatId = msg.chat.id;
 	var userId = msg.from.id;
 	var userName = "@" + msg.from.username;
-
 
 	randomVar = Math.floor((Math.random() * 10) + 1);
 
@@ -64,10 +65,15 @@ bot.onText(/\/regme$|\/regme@Bacereus_bot/, (msg, match) => {
 			}
 		else {
 			if(userRep < 0){
-				bot.sendMessage(chatId, "Поздравляю! Ты неудачник! И твое звание: " + "#userRole#" + ", а также поздравляю тебя с тем, что твоя репутация равна:" + userRep);
+				models.Rank.findOne({reputation: {$lte: user.reputation}}, (err, rank) => {
+					bot.sendMessage(chatId, `Поздравляю! Ты неудачник! И твое звание: ${rank.rank}, а также поздравляю тебя с тем, что твоя репутация равна: ${userRep}`);
+				}).sort({reputation: -1});
 			}
 			else{
-				bot.sendMessage(chatId, "Поздравляю! Оказывается ты везунчик! Твое звание: " + "#userRole#" + ", а также поздравляю тебя с тем, что твоя репутация равна:" + userRep + ". Советую сегодня сыграть тебе в лоторею! Сегодня явно твой день.");
+
+				models.Rank.findOne({reputation: {$lte: user.reputation}}, (err, rank) => {
+					bot.sendMessage(chatId, `Поздравляю! Оказывается ты везунчик! Твое звание: ${rank.rank}, а также поздравляю тебя с тем, что твоя репутация равна: ${userRep}. Советую сегодня сыграть тебе в лоторею! Сегодня явно твой день.`);
+				}).sort({reputation: -1});				
 			}
 		}
 	});
@@ -95,10 +101,13 @@ bot.onText(/\/rank$|\/rank@Bacereus_bot/, (msg, match) => {
 	var chatId = msg.chat.id;
 	var userId = msg.from.id;
 
-	models.User.findOne({ userId: userId, groupId: chatId}, function (err, user){
-		models.Rank.findOne({reputation: {$lt: user.reputation}}, function(err, rank){
-			bot.sendMessage(chatId, "Твой ранг: " + rank.rank + ", а также у тебя: " + user.reputation + " репутации.");
-		}).sort({reputation: -1});
+	models.User.findOne({userId: userId, groupId: chatId}, function (err, user){
+		if(err) console.log(err);
+		else{
+			models.Rank.findOne({reputation: {$lte: user.reputation}}, function(err, rank){
+				bot.sendMessage(chatId, `Твой ранг: ${rank.rank}, а также у тебя: ${user.reputation} репутации.`);
+			}).sort({reputation: -1});
+		}
 	});
 });
 
@@ -107,8 +116,8 @@ bot.onText(/\/rank (.+)$|\/rank (.+)@Bacereus_bot/, (msg, match) => {
 	var userName = match[1];
 
 	models.User.findOne({ userName: userName, groupId: chatId}, function (err, user){
-		models.Rank.findOne({reputation: {$lt: user.reputation}}, function(err, rank){
-			bot.sendMessage(chatId, "Ранг " + userName + ": " + rank.rank + ", а также у него: " + user.reputation + " репутации.");
+		models.Rank.findOne({reputation: {$lte: user.reputation}}, function(err, rank){
+			bot.sendMessage(chatId, `Ранг ${userName}: ${rank.rank}, а также у него: ${user.reputation} репутации.`);
 		}).sort({reputation: -1});		
 	});
 });
@@ -124,9 +133,7 @@ bot.onText(/\/addr (.+) (.+)$|\/addr (.+) (.+)@Bacereus_bot/, (msg, match) => {
 			admin.addr(chatId, rank, reputation);
 		};
 	});
-
 });
-
 
 bot.onText(/\/log/, (msg, match) => {
 	var userId = msg.from.id;
