@@ -29,7 +29,15 @@ bot.onText(/\/reg$|\/reg@Bacereus_bot/, (msg, match) => {
 			}
 		else {
 			models.Rank.findOne({reputation: {$lte: 0}, groupId: chatId}, (err, rank) => {
-				bot.sendMessage(chatId, `Поздравляю! Твой ранг: ${rank.rank}, а также у тебя 0 репутации.`);
+				if(err) throw err;
+				if(rank != null) bot.sendMessage(chatId, `Поздравляю! Твой ранг: ${rank.rank}, а также у тебя 0 репутации.`);
+				else bot.sendMessage(chatId, `Поздравляю! Твой ранг: {UNDEFINED}, а также у тебя 0 репутации.`);
+				//if(!rank.rank) console.log(2);
+				if(rank) console.log("2 " + rank);
+				//if(rank.rank) console.log(4);
+
+				
+			
 			}).sort({reputation: -1});		
 		}
 	});
@@ -66,13 +74,15 @@ bot.onText(/\/regme$|\/regme@Bacereus_bot/, (msg, match) => {
 		else {
 			if(userRep < 0){
 				models.Rank.findOne({reputation: {$lte: user.reputation}}, (err, rank) => {
-					bot.sendMessage(chatId, `Поздравляю! Ты неудачник! И твое звание: ${rank.rank}, а также поздравляю тебя с тем, что твоя репутация равна: ${userRep}`);
+					if(rank != null) bot.sendMessage(chatId, `Поздравляю! Ты неудачник! И твое звание: ${rank.rank}, а также поздравляю тебя с тем, что твоя репутация равна: ${userRep}`);
+					else bot.sendMessage(chatId, `Поздравляю! Ты неудачник! И твое звание: {UNDEFINED}, а также поздравляю тебя с тем, что твоя репутация равна: ${userRep}`);
 				}).sort({reputation: -1});
 			}
 			else{
 
 				models.Rank.findOne({reputation: {$lte: user.reputation}}, (err, rank) => {
-					bot.sendMessage(chatId, `Поздравляю! Оказывается ты везунчик! Твое звание: ${rank.rank}, а также поздравляю тебя с тем, что твоя репутация равна: ${userRep}. Советую сегодня сыграть тебе в лоторею! Сегодня явно твой день.`);
+					if(rank != null) bot.sendMessage(chatId, `Поздравляю! Оказывается ты везунчик! Твое звание: ${rank.rank}, а также поздравляю тебя с тем, что твоя репутация равна: ${userRep}. Советую сегодня сыграть тебе в лоторею! Сегодня явно твой день.`);
+					else bot.sendMessage(chatId, `Поздравляю! Оказывается ты везунчик! Твое звание: {UNDEFINED}, а также поздравляю тебя с тем, что твоя репутация равна: ${userRep}. Советую сегодня сыграть тебе в лоторею! Сегодня явно твой день.`);
 				}).sort({reputation: -1});				
 			}
 		}
@@ -103,11 +113,12 @@ bot.onText(/\/rank$|\/rank@Bacereus_bot/, (msg, match) => {
 
 	models.User.findOne({userId: userId, groupId: chatId}, function (err, user){
 		if(err) console.log(err);
-		else{
-			models.Rank.findOne({reputation: {$lte: user.reputation}}, function(err, rank){
-				bot.sendMessage(chatId, `Твой ранг: ${rank.rank}, а также у тебя: ${user.reputation} репутации.`);
-			}).sort({reputation: -1});
-		}
+		if(user != null)
+		models.Rank.findOne({reputation: {$lte: user.reputation}}, function(err, rank){
+				if(rank != null) bot.sendMessage(chatId, `Твой ранг: ${rank.rank}, а также у тебя: ${user.reputation} репутации.`);
+				else bot.sendMessage(chatId, `Твой ранг: {UNDEFINED}, а также у тебя: ${user.reputation} репутации.`);
+		}).sort({reputation: -1});
+
 	});
 });
 
@@ -116,8 +127,10 @@ bot.onText(/\/rank (.+)$|\/rank (.+)@Bacereus_bot/, (msg, match) => {
 	var userName = match[1];
 
 	models.User.findOne({ userName: userName, groupId: chatId}, function (err, user){
+		if(user != null)
 		models.Rank.findOne({reputation: {$lte: user.reputation}}, function(err, rank){
-			bot.sendMessage(chatId, `Ранг ${userName}: ${rank.rank}, а также у него: ${user.reputation} репутации.`);
+			if(rank != null) bot.sendMessage(chatId, `Ранг ${userName}: ${rank.rank}, а также у него: ${user.reputation} репутации.`);
+			else bot.sendMessage(chatId, `Ранг ${userName}: {UNDEFINED}, а также у него: ${user.reputation} репутации.`);
 		}).sort({reputation: -1});		
 	});
 });

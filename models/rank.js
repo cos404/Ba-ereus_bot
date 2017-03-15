@@ -6,7 +6,6 @@ const rankSchema = new Schema({
   groupId: {
     type: Number,
     required: true,
-    ref: 'group',
   },
   rank: {
     type: String,

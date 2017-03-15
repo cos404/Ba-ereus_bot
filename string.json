@@ -1,0 +1,16 @@
+{
+	"ru":{
+		"reg":"Поздравляю! Твой ранк: {{rank.rank}}, а также у тебя 0 репутации.",
+		"regmeBad":"Поздравляю! Ты неудачник! И твое звание: {{userRank}}, а также поздравляю тебя с тем, что твоя репутация равна: {{userRep}}",
+		"regmeGood":"Поздравляю! Оказывается ты везунчик! Твое звание: {{userRank}}, а также поздравляю тебя с тем, что твоя репутация равна: {{userRep}}. Советую сегодня сыграть тебе в лоторею! Сегодня явно твой день.",
+		"rank":"Твой ранк: {{rank.rank}}, а также у тебя: {{user.reputation}} репутации.",
+		"rankHim":"Ранк {{userName}}: {{rank.rank}}, а также у него: {{user.reputation}} репутации."
+	},
+	"en":{
+		"reg":"Congratulations! Your rank: {{rank.rank}}, and also You have 0 reputation.",
+		"regmeBad":"Congratulations! You unlucky! And Your rank: {{userRank}}, а также поздравляю тебя с тем, что твоя репутация равна: {{userRep}}",
+		"regmeGood":"Congratulations! You lucky! You rank: {{userRank}}, and also congratulations you with then, what you reputation equal: {{userRep}}. Советую сегодня сыграть тебе в лоторею! Сегодня явно твой день.",
+		"rank":"You rank: {{rank.rank}}, and also Ypu have: {{user.reputation}} reputations.",
+		"rankHim":"Rank {{userName}}: {{rank.rank}}, and also he have: {{user.reputation}} reputations."
+	}
+}

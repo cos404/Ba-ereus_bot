@@ -9,5 +9,5 @@
 module.exports = {
   User: require('./user.js'),
   Rank: require('./rank.js'),
-  Setting: require('./user.js'),
+  Group: require('./group.js'),
 };

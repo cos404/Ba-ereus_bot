@@ -6,7 +6,6 @@ const userSchema = new Schema({
   groupId: {
     type: Number,
     required: true,
-    ref: 'group',
   },
   userId: {
     type: Number,

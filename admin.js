@@ -1,6 +1,6 @@
 var models = require('./models/index');
 
-var groupId, 
+var chatId, 
 	rank,
 	reputation;
 
@@ -9,7 +9,7 @@ function Admin(){
 }
 
 Admin.prototype.addr = function(chatId, rank, reputation){
-	this.groupId = chatId;
+	this.chatId = chatId;
 	this.rank = rank;
 	this.reputation = reputation;
 
@@ -28,5 +28,7 @@ Admin.prototype.addr = function(chatId, rank, reputation){
 		}
 	});
 }
+
+
 
 module.exports = Admin;
