@@ -165,7 +165,7 @@ bot.onText(/\/language/, (msg, match) => {
 	});
 });
 
-bot.onText(/\/start/, (msg, match) => {
+bot.onText(/\/log/, (msg, match) => {
 	var userId = msg.from.id;
 	var userName = msg.from.username;
 	var chatId = msg.chat.id;
@@ -174,16 +174,27 @@ bot.onText(/\/start/, (msg, match) => {
 bot.on('message', (msg) => {
 	var chatId = msg.chat.id;
 	var userId = msg.from.id;
-	var msg = msg.text;
-	var msgText =  msg.split(' ')[0]; 
-
-	if(msgText != "/rank" && msgText != "/up" && msgText != "/reg" && msgText != "/regme" && msgText != "/log"){
-		if(msg.split(' ').length > 10 && msg.trim().length > 25){
+	var msgText = msg.text;
+	//msgText =  msgText.split(' ')[0]; 
+	console.log("ID NEW CHAT MEMBER " + msg.new_chat_participant.id);
+	if(msg.new_chat_participant.id == 287114980){
+		var chat = new models.Group({
+			groupId: chatId,
+		});
+		chat.save(function(err){
+			if (err) {
+				console.log(err);
+			}
+			else console.log("Chat added!");
+		});
+	}
+	else if(msgText != "/rank" && msgText != "/up" && msgText != "/reg" && msgText != "/regme" && msgText != "/log"){
+		if(msgText.split(' ').length > 10 && msgText.trim().length > 25){
 			models.User.update({userId:userId, groupId: chatId}, {$inc:{reputation: +3}},(err, raw) => {
 				if (err) console.log(err);
 			});
 		}
-		else if(msg.split(' ').length <= 4 && msg.trim().length <= 10) {
+		else if(msgText.split(' ').length <= 4 && msgText.trim().length <= 10) {
 			models.User.update({userId:userId, groupId: chatId}, {$inc:{reputation: -1}},(err, raw) => {
 				if (err) console.log(err);
 			});
