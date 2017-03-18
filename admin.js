@@ -2,7 +2,8 @@ var models = require('./models/index');
 
 var chatId, 
 	rank,
-	reputation;
+	reputation,
+	language;
 
 function Admin(){
 
@@ -29,6 +30,11 @@ Admin.prototype.addr = function(chatId, rank, reputation){
 	});
 }
 
-
+Admin.prototype.language = function(chatId, lang) {
+	this.language = language;
+	models.Group.update({groupId: chatId}, {language: language},(err, raw) => {
+		if (err) console.log(err);
+	});
+}
 
 module.exports = Admin;

@@ -1,7 +1,6 @@
 const mongoose = require('../lib/mongoose');
 const Schema = mongoose.Schema;
 
-
 const groupSchema = new Schema({
   groupId: {
     type: Number,

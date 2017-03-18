@@ -32,12 +32,8 @@ bot.onText(/\/reg$|\/reg@Bacereus_bot/, (msg, match) => {
 				if(err) throw err;
 				if(rank != null) bot.sendMessage(chatId, `Поздравляю! Твой ранг: ${rank.rank}, а также у тебя 0 репутации.`);
 				else bot.sendMessage(chatId, `Поздравляю! Твой ранг: {UNDEFINED}, а также у тебя 0 репутации.`);
-				//if(!rank.rank) console.log(2);
-				if(rank) console.log("2 " + rank);
-				//if(rank.rank) console.log(4);
 
-				
-			
+				if(rank) console.log("2 " + rank);
 			}).sort({reputation: -1});		
 		}
 	});
@@ -148,7 +144,28 @@ bot.onText(/\/addr (.+) (.+)$|\/addr (.+) (.+)@Bacereus_bot/, (msg, match) => {
 	});
 });
 
-bot.onText(/\/log/, (msg, match) => {
+bot.onText(/\/language/, (msg, match) => {
+	var chatId = msg.chat.id;
+	var userId = msg.from.id;
+
+	var options = { 
+		reply_markup: JSON.stringify({ 
+			inline_keyboard: [ 
+				[{ text: 'ru', callback_data: 'ru' }], 
+				[{ text: 'en', callback_data: 'en' }],
+				[{ text: 'fr', callback_data: 'fr' }]
+			]
+		})
+	};
+
+	bot.getChatMember(chatId, userId).then((user) => {
+		if(user.status == "administrator" || user.status == "creator"){
+			bot.sendMessage(chatId, 'Choose language:', options); 
+		};
+	});
+});
+
+bot.onText(/\/start/, (msg, match) => {
 	var userId = msg.from.id;
 	var userName = msg.from.username;
 	var chatId = msg.chat.id;
@@ -172,4 +189,23 @@ bot.on('message', (msg) => {
 			});
 		}
 	}
+});
+
+bot.on('callback_query', (msg) => { 
+	var lang = msg.data; 
+	var chatId = msg.message.chat.id;
+	var userId = msg.from.id;
+	var msgId = msg.message.message_id;
+
+	bot.getChatMember(chatId, userId).then((user) => {
+		if(user.status == "administrator" || user.status == "creator"){
+			if (["ru","en"].indexOf(lang) > -1) { 
+				bot.editMessageText("WORK", {
+      				chat_id: msg.message.chat.id,
+      				message_id: msg.message.message_id
+    			});
+				admin.language(chatId, lang); 
+			} 
+		};
+	});
 });
