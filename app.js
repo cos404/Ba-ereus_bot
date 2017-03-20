@@ -7,6 +7,8 @@ var bot = new TelegramBot(config.telegram_api_key, {polling: true});
 var Admin = require('./admin.js');
 	admin = new Admin();
 
+var string = require('./string.json');
+
 bot.getMe().then((me) => {
     console.log('Hello! My name is %s!', me.first_name);
     console.log('My id is %s.', me.id);
@@ -24,9 +26,7 @@ bot.onText(/\/reg$|\/reg@Bacereus_bot/, (msg, match) => {
 	});
 
 	user.save(function(err){
-		if (err) {
-				console.log(err);
-			}
+		if (err) console.log(err);
 		else {
 			models.Rank.findOne({reputation: {$lte: 0}, groupId: chatId}, (err, rank) => {
 				if(err) throw err;
@@ -127,7 +127,7 @@ bot.onText(/\/rank (.+)$|\/rank (.+)@Bacereus_bot/, (msg, match) => {
 		models.Rank.findOne({reputation: {$lte: user.reputation}}, function(err, rank){
 			if(rank != null) bot.sendMessage(chatId, `Ранг ${userName}: ${rank.rank}, а также у него: ${user.reputation} репутации.`);
 			else bot.sendMessage(chatId, `Ранг ${userName}: {UNDEFINED}, а также у него: ${user.reputation} репутации.`);
-		}).sort({reputation: -1});		
+		}).sort({reputation: -1});	
 	});
 });
 
@@ -148,10 +148,10 @@ bot.onText(/\/language/, (msg, match) => {
 	var chatId = msg.chat.id;
 	var userId = msg.from.id;
 
-	var options = { 
-		reply_markup: JSON.stringify({ 
-			inline_keyboard: [ 
-				[{ text: 'ru', callback_data: 'ru' }], 
+	var options = {
+		reply_markup: JSON.stringify({
+			inline_keyboard: [
+				[{ text: 'ru', callback_data: 'ru' }],
 				[{ text: 'en', callback_data: 'en' }],
 				[{ text: 'fr', callback_data: 'fr' }]
 			]
@@ -160,7 +160,7 @@ bot.onText(/\/language/, (msg, match) => {
 
 	bot.getChatMember(chatId, userId).then((user) => {
 		if(user.status == "administrator" || user.status == "creator"){
-			bot.sendMessage(chatId, 'Choose language:', options); 
+			bot.sendMessage(chatId, 'Choose language:', options);
 		};
 	});
 });
@@ -169,24 +169,42 @@ bot.onText(/\/log/, (msg, match) => {
 	var userId = msg.from.id;
 	var userName = msg.from.username;
 	var chatId = msg.chat.id;
+	var chatTitle = msg.chat.title;
+	
+	admin.getLanguage(chatId)
+		.then(
+			language => {
+				return language;
+			}
+		)
+		.then(
+			language => {
+				admin.getString(string[language].log, userName, chatTitle, 100)
+			}
+		)
+		.catch(err => {console.log(err)});
 });
 
 bot.on('message', (msg) => {
 	var chatId = msg.chat.id;
 	var userId = msg.from.id;
 	var msgText = msg.text;
-	//msgText =  msgText.split(' ')[0]; 
-	console.log("ID NEW CHAT MEMBER " + msg.new_chat_participant.id);
-	if(msg.new_chat_participant.id == 287114980){
-		var chat = new models.Group({
-			groupId: chatId,
-		});
-		chat.save(function(err){
-			if (err) {
-				console.log(err);
-			}
-			else console.log("Chat added!");
-		});
+	var chatTitle = msg.chat.title;
+	//	msgText =  msgText.split(' ')[0]; 
+	//	console.log("ID NEW CHAT MEMBER " + msg.new_chat_participant.id);
+	if(msg.new_chat_participant != undefined){
+		if(msg.new_chat_participant.id == 287114980){
+			var chat = new models.Group({
+				groupId: chatId,
+				chatTitle: chatTitle,
+			});
+			chat.save(function(err){
+				if (err) {
+					console.log("Err chat.save: " + err);
+				}
+				else console.log("Chat added!");
+			});
+		}
 	}
 	else if(msgText != "/rank" && msgText != "/up" && msgText != "/reg" && msgText != "/regme" && msgText != "/log"){
 		if(msgText.split(' ').length > 10 && msgText.trim().length > 25){
@@ -202,21 +220,24 @@ bot.on('message', (msg) => {
 	}
 });
 
-bot.on('callback_query', (msg) => { 
-	var lang = msg.data; 
+
+bot.on('callback_query', (msg) => {
+	var language = msg.data;
 	var chatId = msg.message.chat.id;
 	var userId = msg.from.id;
 	var msgId = msg.message.message_id;
 
 	bot.getChatMember(chatId, userId).then((user) => {
 		if(user.status == "administrator" || user.status == "creator"){
-			if (["ru","en"].indexOf(lang) > -1) { 
+			if (["ru","en"].indexOf(language) > -1) {
 				bot.editMessageText("WORK", {
-      				chat_id: msg.message.chat.id,
-      				message_id: msg.message.message_id
-    			});
-				admin.language(chatId, lang); 
-			} 
+					chat_id: msg.message.chat.id,
+					message_id: msg.message.message_id
+				});
+				admin.setLanguage(chatId, language);
+			}
 		};
 	});
 });
+
+
