@@ -1,13 +1,19 @@
-var config = require('./config.js');
-var models = require('./models/index');
+/* 
+ * @author Maxim Hvaschinsky 22division7@gmail.com
+ * @license MIT
+ */
 
-var TelegramBot = require('node-telegram-bot-api');
-var bot = new TelegramBot(config.telegram_api_key, {polling: true});
+'use strict';
+var config = require('./config.js'),
+	models = require('./models/index'),
+	Admin = require('./admin.js'),
+	Logic = require('./logic.js'),
+	string = require('./string.json'),
+	TelegramBot = require('node-telegram-bot-api');
 
-var Admin = require('./admin.js');
-	admin = new Admin();
-
-var string = require('./string.json');
+var	bot = new TelegramBot(config.telegram_api_key, {polling: true}),
+	admin = new Admin(),
+	logic = new Logic();
 
 bot.getMe().then((me) => {
     console.log('Hello! My name is %s!', me.first_name);
@@ -15,127 +21,120 @@ bot.getMe().then((me) => {
     console.log('And my username is @%s.', me.username);
 });
 
-bot.onText(/\/reg$|\/reg@Bacereus_bot/, (msg, match) => {
-	var chatId = msg.chat.id;
-	var userId = msg.from.id;
-	var userName = "@" + msg.from.username;
-	var user = new models.User({
-		groupId: chatId,
-		userId: userId,
-		userName: userName,
-	});
+bot.onText(/\/reg(@Bacereus_bot$)?$/, (msg, match) => {
+	let chatId = msg.chat.id,
+		userId = msg.from.id,
+		userName = "@" + msg.from.username,
+		rank;
 
-	user.save(function(err){
-		if (err) console.log(err);
-		else {
-			models.Rank.findOne({reputation: {$lte: 0}, groupId: chatId}, (err, rank) => {
-				if(err) throw err;
-				if(rank != null) bot.sendMessage(chatId, `Поздравляю! Твой ранг: ${rank.rank}, а также у тебя 0 репутации.`);
-				else bot.sendMessage(chatId, `Поздравляю! Твой ранг: {UNDEFINED}, а также у тебя 0 репутации.`);
-
-				if(rank) console.log("2 " + rank);
-			}).sort({reputation: -1});		
-		}
+	Promise.all([	logic.addUser(chatId, userId, userName, 0),
+					admin.getLanguage(chatId),
+					logic.getRank(chatId, 0)	])
+	.then(
+		results =>{
+			let language = results[1],
+				rank = results[2];
+			bot.sendMessage(chatId, admin.getString(string[language].reg, rank));
+	})
+	.catch(err => {
+		console.log(err);
+		admin.getLanguage(chatId).then(language=>{bot.sendMessage(chatId, admin.getString(string[language].yetReg));})
 	});
 });	
 
-bot.onText(/\/regme$|\/regme@Bacereus_bot/, (msg, match) => {
-	var userRep;
-	var chatId = msg.chat.id;
-	var userId = msg.from.id;
-	var userName = "@" + msg.from.username;
-
-	randomVar = Math.floor((Math.random() * 10) + 1);
+bot.onText(/\/regme(@Bacereus_bot$)?$/, (msg, match) => {
+	let chatId = msg.chat.id,
+		userId = msg.from.id,
+		userName = "@" + msg.from.username,
+		randomVar = Math.floor((Math.random() * 10) + 1),
+		reputation;
 
 	switch(true) {
-		case randomVar <= 5: 
-				userRep = -10;
-		break;
-		case randomVar > 5: 
-				userRep = 10;
-		break;
+		case 	randomVar <= 5: 
+				reputation = -10;
+				break;		
+		case 	randomVar > 5: 
+				reputation = 10;
+				break;
 	};
 
-	var user = new models.User({
-		groupId: chatId,
-		userId: userId,
-		userName: userName,
-		reputation: userRep,
+	Promise.all([	logic.addUser(chatId, userId, userName, reputation),
+					admin.getLanguage(chatId),
+					logic.getRank(chatId, reputation)	])
+	.then(
+		results => {
+			let	language = results[1],
+				rank = results[2];
+			if(reputation > 0)	bot.sendMessage(chatId, admin.getString(string[language].regmeGood, rank, reputation));
+			else bot.sendMessage(chatId, admin.getString(string[language].regmeBad, rank, reputation));
+	})
+	.catch(err => {
+		console.log(err);
+		admin.getLanguage(chatId).then(language=>{bot.sendMessage(chatId, admin.getString(string[language].yetReg));})
 	});
+});
 
-	user.save((err) => {
-		if (err) {
-				console.log(err);
-			}
-		else {
-			if(userRep < 0){
-				models.Rank.findOne({reputation: {$lte: user.reputation}}, (err, rank) => {
-					if(rank != null) bot.sendMessage(chatId, `Поздравляю! Ты неудачник! И твое звание: ${rank.rank}, а также поздравляю тебя с тем, что твоя репутация равна: ${userRep}`);
-					else bot.sendMessage(chatId, `Поздравляю! Ты неудачник! И твое звание: {UNDEFINED}, а также поздравляю тебя с тем, что твоя репутация равна: ${userRep}`);
-				}).sort({reputation: -1});
-			}
-			else{
+bot.onText(/\/up (.+) (.+)$/, (msg, match) => { // /up @cosmos404 10
+	let	chatId = msg.chat.id,
+		userId = msg.from.id,
+		userName = msg.from.username,
+		repUpName = match[1],
+		repUp = parseInt(match[2]);
 
-				models.Rank.findOne({reputation: {$lte: user.reputation}}, (err, rank) => {
-					if(rank != null) bot.sendMessage(chatId, `Поздравляю! Оказывается ты везунчик! Твое звание: ${rank.rank}, а также поздравляю тебя с тем, что твоя репутация равна: ${userRep}. Советую сегодня сыграть тебе в лоторею! Сегодня явно твой день.`);
-					else bot.sendMessage(chatId, `Поздравляю! Оказывается ты везунчик! Твое звание: {UNDEFINED}, а также поздравляю тебя с тем, что твоя репутация равна: ${userRep}. Советую сегодня сыграть тебе в лоторею! Сегодня явно твой день.`);
-				}).sort({reputation: -1});				
+	Promise.all([	admin.getLanguage(chatId), 
+					logic.getReputation(chatId, userId, "id")	])
+	.then(
+		results => {
+			let	language = results[0],
+				reputation = results[1];
+
+			if(reputation < repUp) bot.sendMessage(chatId, admin.getString(string[language].upLittle));
+			else {
+				models.User.update({userName:repUpName, chatId: chatId}, {$inc:{reputation: +repUp}},(err, raw) => {
+					if (err) console.log(err);
+				});
+				models.User.update({userId:userId, chatId: chatId}, {$inc:{reputation: -repUp}},(err, raw) => {
+					if (err) console.log(err);
+				});
 			}
+	})
+	.catch(err => {console.log(err)});
+
+});
+
+bot.onText(/\/rank( .+)?(@Bacereus_bot$)?$/, (msg, match) => {
+	let	chatId = msg.chat.id,
+		user = (match[1]) ? match[1].trim() : msg.from.id,
+		type = (match[1]) ? "name" : "id";
+
+	admin.getLanguage(chatId)
+	.then(
+		language => {
+			logic.getReputation(chatId, user, type)
+			.then(
+				reputation => {	
+					logic.getRank(chatId, reputation)
+					.then(
+						rank => {
+							if(!match[1])
+								bot.sendMessage(chatId, admin.getString(string[language].rank, rank, reputation));
+							else
+								bot.sendMessage(chatId, admin.getString(string[language].rankHim, user, rank, reputation));
+						}
+					)
+					.catch(err => {console.log(err)});
+				}
+			)
+			.catch(err => bot.sendMessage(chatId, admin.getString(string[language].notReg)));
 		}
-	});
+	)
 });
 
-// /up @cosmos404 10
-bot.onText(/\/up (.+) (.+)/, (msg, match) => {
-
-	var chatId = msg.chat.id;
-	var userId = msg.from.id;
-	var userName = msg.from.username;
-	var repUpName = match[1];
-	var repUp = parseInt(match[2]);
-
-	models.User.update({userName:repUpName, groupId: chatId}, {$inc:{reputation: +repUp}},(err, raw) => {
-		if (err) console.log(err);
-	});
-
-	models.User.update({userId:userId, groupId: chatId}, {$inc:{reputation: -repUp}},(err, raw) => {
-		if (err) console.log(err);
-	});
-});
-
-bot.onText(/\/rank$|\/rank@Bacereus_bot/, (msg, match) => {
-	var chatId = msg.chat.id;
-	var userId = msg.from.id;
-
-	models.User.findOne({userId: userId, groupId: chatId}, function (err, user){
-		if(err) console.log(err);
-		if(user != null)
-		models.Rank.findOne({reputation: {$lte: user.reputation}}, function(err, rank){
-				if(rank != null) bot.sendMessage(chatId, `Твой ранг: ${rank.rank}, а также у тебя: ${user.reputation} репутации.`);
-				else bot.sendMessage(chatId, `Твой ранг: {UNDEFINED}, а также у тебя: ${user.reputation} репутации.`);
-		}).sort({reputation: -1});
-
-	});
-});
-
-bot.onText(/\/rank (.+)$|\/rank (.+)@Bacereus_bot/, (msg, match) => {
-	var chatId = msg.chat.id;
-	var userName = match[1];
-
-	models.User.findOne({ userName: userName, groupId: chatId}, function (err, user){
-		if(user != null)
-		models.Rank.findOne({reputation: {$lte: user.reputation}}, function(err, rank){
-			if(rank != null) bot.sendMessage(chatId, `Ранг ${userName}: ${rank.rank}, а также у него: ${user.reputation} репутации.`);
-			else bot.sendMessage(chatId, `Ранг ${userName}: {UNDEFINED}, а также у него: ${user.reputation} репутации.`);
-		}).sort({reputation: -1});	
-	});
-});
-
-bot.onText(/\/addr (.+) (.+)$|\/addr (.+) (.+)@Bacereus_bot/, (msg, match) => {
-	var chatId = msg.chat.id;
-	var userId = msg.from.id;
-	var rank = match[1];
-	var reputation = match[2];
+bot.onText(/\/addr (.+) (.+)(@Bacereus_bot$)?$/, (msg, match) => {
+	let	chatId = msg.chat.id,
+		userId = msg.from.id,
+		rank = match[1],
+		reputation = match[2];
 
 	bot.getChatMember(chatId, userId).then((user) => {
 		if(user.status == "administrator" || user.status == "creator"){
@@ -144,100 +143,81 @@ bot.onText(/\/addr (.+) (.+)$|\/addr (.+) (.+)@Bacereus_bot/, (msg, match) => {
 	});
 });
 
-bot.onText(/\/language/, (msg, match) => {
-	var chatId = msg.chat.id;
-	var userId = msg.from.id;
-
-	var options = {
-		reply_markup: JSON.stringify({
-			inline_keyboard: [
-				[{ text: 'ru', callback_data: 'ru' }],
-				[{ text: 'en', callback_data: 'en' }],
-				[{ text: 'fr', callback_data: 'fr' }]
-			]
-		})
-	};
+bot.onText(/\/language(@Bacereus_bot$)?$/, (msg, match) => {
+	let	chatId = msg.chat.id,
+		userId = msg.from.id,
+		options = {
+			reply_markup: JSON.stringify({
+				inline_keyboard: [
+					[{ text: 'ru', callback_data: 'ru' }],
+					[{ text: 'en', callback_data: 'en' }]
+				]
+			})
+		};
 
 	bot.getChatMember(chatId, userId).then((user) => {
 		if(user.status == "administrator" || user.status == "creator"){
 			bot.sendMessage(chatId, 'Choose language:', options);
 		};
 	});
+
 });
 
 bot.onText(/\/log/, (msg, match) => {
-	var userId = msg.from.id;
-	var userName = msg.from.username;
-	var chatId = msg.chat.id;
-	var chatTitle = msg.chat.title;
-	
-	admin.getLanguage(chatId)
-		.then(
-			language => {
-				return language;
-			}
-		)
-		.then(
-			language => {
-				admin.getString(string[language].log, userName, chatTitle, 100)
-			}
-		)
-		.catch(err => {console.log(err)});
+	let	userId = msg.from.id,
+		userName = msg.from.username,
+		chatId = msg.chat.id;
+
+	console.log(userId + " " + userName + " " + chatId);
 });
 
 bot.on('message', (msg) => {
-	var chatId = msg.chat.id;
-	var userId = msg.from.id;
-	var msgText = msg.text;
-	var chatTitle = msg.chat.title;
-	//	msgText =  msgText.split(' ')[0]; 
-	//	console.log("ID NEW CHAT MEMBER " + msg.new_chat_participant.id);
-	if(msg.new_chat_participant != undefined){
-		if(msg.new_chat_participant.id == 287114980){
-			var chat = new models.Group({
-				groupId: chatId,
-				chatTitle: chatTitle,
-			});
-			chat.save(function(err){
-				if (err) {
-					console.log("Err chat.save: " + err);
-				}
-				else console.log("Chat added!");
-			});
-		}
+	let	chatId = msg.chat.id,
+		userId = msg.from.id,
+		msgText = msg.text,
+		chatTitle = msg.chat.title;
+
+	if(msg.new_chat_participant != undefined && msg.new_chat_participant.id == 287114980){
+		let chat = new models.Chat({
+			chatId: chatId,
+		});
+		chat.save(function(err){
+			if (err) {
+				console.log("Err chat.save: " + err);
+			}
+			else console.log("Chat added!");
+		});
 	}
-	else if(msgText != "/rank" && msgText != "/up" && msgText != "/reg" && msgText != "/regme" && msgText != "/log"){
+	else if(!msgText.match(/\/(.+)/)){
 		if(msgText.split(' ').length > 10 && msgText.trim().length > 25){
-			models.User.update({userId:userId, groupId: chatId}, {$inc:{reputation: +3}},(err, raw) => {
+			models.User.update({userId:userId, chatId: chatId}, {$inc:{reputation: +3}},(err, raw) => {
 				if (err) console.log(err);
 			});
 		}
 		else if(msgText.split(' ').length <= 4 && msgText.trim().length <= 10) {
-			models.User.update({userId:userId, groupId: chatId}, {$inc:{reputation: -1}},(err, raw) => {
+			models.User.update({userId:userId, chatId: chatId}, {$inc:{reputation: -1}},(err, raw) => {
 				if (err) console.log(err);
 			});
 		}
 	}
 });
 
-
 bot.on('callback_query', (msg) => {
-	var language = msg.data;
-	var chatId = msg.message.chat.id;
-	var userId = msg.from.id;
-	var msgId = msg.message.message_id;
+	let	language = msg.data,
+		chatId = msg.message.chat.id,
+		userId = msg.from.id,
+		msgId = msg.message.message_id;
 
 	bot.getChatMember(chatId, userId).then((user) => {
 		if(user.status == "administrator" || user.status == "creator"){
 			if (["ru","en"].indexOf(language) > -1) {
-				bot.editMessageText("WORK", {
-					chat_id: msg.message.chat.id,
-					message_id: msg.message.message_id
-				});
+				bot.editMessageText(admin.getString(string[language].setLanguage),
+					{
+						chat_id: msg.message.chat.id,
+						message_id: msg.message.message_id
+					});
 				admin.setLanguage(chatId, language);
 			}
 		};
 	});
 });
-
-

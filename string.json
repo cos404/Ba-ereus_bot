@@ -5,14 +5,22 @@
 		"regmeGood":"Поздравляю! Оказывается ты везунчик! Твое звание: {{userRank}}, а также поздравляю тебя с тем, что твоя репутация равна: {{userRep}}. Советую сегодня сыграть тебе в лоторею! Сегодня явно твой день.",
 		"rank":"Твой ранк: {{rank.rank}}, а также у тебя: {{user.reputation}} репутации.",
 		"rankHim":"Ранк {{userName}}: {{rank.rank}}, а также у него: {{user.reputation}} репутации.",
-		"log":"Никнейм пользователя {{userName}}, сообщение пришло из чата {{titleChat}}. У пользователя {{reputation}} репутации."
+		"log":"Никнейм пользователя {{userName}}, сообщение пришло из чата {{titleChat}}. У пользователя {{reputation}} репутации.",
+		"notReg": "Пользователь не зарегистрирован!",
+		"yetReg": "Вы уже зарегистрированы",
+		"upLittle": "Не хватает репутации.",
+		"setLanguage": "Выбран русский язык!"
 	},
 	"en":{
 		"reg":"Congratulations! Your rank: {{rank.rank}}, and also You have 0 reputation.",
 		"regmeBad":"Congratulations! You unlucky! And Your rank: {{userRank}}, а также поздравляю тебя с тем, что твоя репутация равна: {{userRep}}",
 		"regmeGood":"Congratulations! You lucky! You rank: {{userRank}}, and also congratulations you with then, what you reputation equal: {{userRep}}. Советую сегодня сыграть тебе в лоторею! Сегодня явно твой день.",
-		"rank":"You rank: {{rank.rank}}, and also Ypu have: {{user.reputation}} reputations.",
+		"rank":"You rank: {{rank.rank}}, and also You have: {{user.reputation}} reputations.",
 		"rankHim":"Rank {{userName}}: {{rank.rank}}, and also he have: {{user.reputation}} reputations.",
-		"log":"UserName {{userName}}, message has arrived from {{titleChat}}. User have {{reputation}} reputation."
+		"log":"UserName {{userName}}, message has arrived from {{titleChat}}. User have {{reputation}} reputation.",
+		"notReg": "User not register!",
+		"yetReg": "You already register!",
+		"upLittle": "You have little reputation.",
+		"setLanguage": "Changed english language!"
 	}
 }

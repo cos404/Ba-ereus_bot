@@ -1,9 +1,13 @@
+/*
+ * @module models
+ * @author Maxim Hvaschinsky 22division7@gmail.com
+ * @license MIT
+ */
+
 const mongoose = require('../lib/mongoose');
 const Schema = mongoose.Schema;
-
-
 const userSchema = new Schema({
-  groupId: {
+  chatId: {
     type: Number,
     required: true,
   },
@@ -29,6 +33,6 @@ const userSchema = new Schema({
   },
 });
 
-userSchema.index({groupId: 1, userId: 1}, {unique: true});
+userSchema.index({chatId: 1, userId: 1}, {unique: true});
 
 module.exports = mongoose.model('user', userSchema);

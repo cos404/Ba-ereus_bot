@@ -1,8 +1,13 @@
+/*
+ * @module models
+ * @author Maxim Hvaschinsky 22division7@gmail.com
+ * @license MIT
+ */
+ 
 const mongoose = require('../lib/mongoose');
 const Schema = mongoose.Schema;
-
-const groupSchema = new Schema({
-  groupId: {
+const chatSchema = new Schema({
+  chatId: {
     type: Number,
     required: true,
     unique: true,
@@ -19,4 +24,4 @@ const groupSchema = new Schema({
   }
 });
 
-module.exports = mongoose.model('group', groupSchema);
+module.exports = mongoose.model('chat', chatSchema);

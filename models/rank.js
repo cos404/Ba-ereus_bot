@@ -1,9 +1,13 @@
+/*
+ * @module models
+ * @author Maxim Hvaschinsky 22division7@gmail.com
+ * @license MIT
+ */
+
 const mongoose = require('../lib/mongoose');
 const Schema = mongoose.Schema;
-
-
 const rankSchema = new Schema({
-  groupId: {
+  chatId: {
     type: Number,
     required: true,
   },
@@ -17,6 +21,6 @@ const rankSchema = new Schema({
   },
 });
 
-rankSchema.index({groupId: 1, reputation: 1},{unique: true});
+rankSchema.index({chatId: 1, reputation: 1},{unique: true});
 
 module.exports = mongoose.model('rank', rankSchema);

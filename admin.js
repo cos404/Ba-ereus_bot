@@ -1,13 +1,11 @@
+/* 
+ * @author Maxim Hvaschinsky 22division7@gmail.com
+ * @license MIT
+ */
+
+'use strict';
 var models = require('./models/index');
-
-var chatId, 
-	rank,
-	reputation,
-	language;
-
-function Admin(){
-
-}
+function Admin(){}
 
 Admin.prototype.addr = function(chatId, rank, reputation){
 	this.chatId = chatId;
@@ -15,7 +13,7 @@ Admin.prototype.addr = function(chatId, rank, reputation){
 	this.reputation = reputation;
 
 	var rankModel = new models.Rank({
-		groupId: chatId,
+		chatId: chatId,
 		rank: rank,
 		reputation: reputation,
 	});
@@ -32,16 +30,15 @@ Admin.prototype.addr = function(chatId, rank, reputation){
 
 Admin.prototype.setLanguage = function(chatId, language) {
 	this.language = language;
-	models.Group.update({groupId: chatId}, {language: language},(err, raw) => {
+	models.Chat.update({chatId: chatId}, {language: language},(err, raw) => {
 		if (err) console.log(err);
 	});
 }
 
 Admin.prototype.getLanguage = function(chatId) {
 	this.chatId = chatId;
-	var lang;
 	var promise = new Promise(function(resolve,reject){
-		models.Group.findOne({groupId:chatId}, function(err, setting){
+		models.Chat.findOne({chatId:chatId}, function(err, setting){
 			if(err) reject(err);
 			else resolve(setting.language);
 		});
@@ -54,7 +51,6 @@ Admin.prototype.getString = function(text, options) {
 	for(var i=1; i < arguments.length; i++) {
 		nowText = nowText.replace(/{{.{1,}?}}/, arguments[i]);
 	}
-	console.log(nowText);
 	return nowText; 
 }
 
