@@ -143,6 +143,18 @@ bot.onText(/\/addr (.+) (.+)(@Bacereus_bot$)?$/, (msg, match) => {
 	});
 });
 
+bot.onText(/\/listr(@Bacereus_bot$)?$/,(msg, match) => {
+	let	chatId = msg.chat.id,
+		userId = msg.from.id;
+
+		admin.listr(chatId)
+		.then(
+			ranks => {
+				bot.sendMessage(chatId, ranks);
+			}
+		)
+});
+
 bot.onText(/\/language(@Bacereus_bot$)?$/, (msg, match) => {
 	let	chatId = msg.chat.id,
 		userId = msg.from.id,

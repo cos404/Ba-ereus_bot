@@ -28,6 +28,24 @@ Admin.prototype.addr = function(chatId, rank, reputation){
 	});
 }
 
+Admin.prototype.listr = function(chatId) {
+	this.chatId = chatId;
+	var ranks = "";
+	var promise = new Promise(function(resolve, reject){
+		models.Rank.find({chatId: chatId}, function(err, rank){
+			if (err) reject(err);
+			else if(rank){
+				for(var key in rank){
+					ranks += "\n" + rank[key].rank + ": " + rank[key].reputation;
+				}
+				resolve(ranks);
+			}
+		}).sort({reputation: -1});
+		
+	});
+	return promise;
+}
+
 Admin.prototype.setLanguage = function(chatId, language) {
 	this.language = language;
 	models.Chat.update({chatId: chatId}, {language: language},(err, raw) => {
