@@ -23,9 +23,20 @@ Admin.prototype.addr = function(chatId, rank, reputation){
 			console.log(err);
 		}
 	else {
-			console.log("Добавлен ранк: " + rank);
+			console.log("Добавлен ранк: " + rank + " | " + reputation);
 		}
 	});
+}
+
+Admin.prototype.delr = function(chatId, rank) {
+	this.chatId = chatId;
+	this.rank = rank;
+
+	models.Rank.remove({chatId: chatId, rank: rank},(err, raw) => {
+		if (err) console.log(err);
+		else console.log("Document delete");
+	});
+	
 }
 
 Admin.prototype.listr = function(chatId) {

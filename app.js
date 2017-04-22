@@ -137,8 +137,20 @@ bot.onText(/\/addr (.+) (.+)(@Bacereus_bot$)?$/, (msg, match) => {
 		reputation = match[2];
 
 	bot.getChatMember(chatId, userId).then((user) => {
-		if(user.status == "administrator" || user.status == "creator"){
+		if(user.status == "administrator"){
 			admin.addr(chatId, rank, reputation);
+		};
+	});
+});
+
+bot.onText(/\/delr (.+)(@Bacereus_bot$)?$/,(msg, match) => {
+	let	chatId = msg.chat.id,
+		userId = msg.from.id,
+		rank = match[1];
+
+	bot.getChatMember(chatId, userId).then((user) => {
+		if(user.status == "administrator"){
+			admin.delr(chatId, rank);
 		};
 	});
 });
@@ -168,7 +180,7 @@ bot.onText(/\/language(@Bacereus_bot$)?$/, (msg, match) => {
 		};
 
 	bot.getChatMember(chatId, userId).then((user) => {
-		if(user.status == "administrator" || user.status == "creator"){
+		if(user.status == "administrator"){
 			bot.sendMessage(chatId, 'Choose language:', options);
 		};
 	});
@@ -221,7 +233,7 @@ bot.on('callback_query', (msg) => {
 		msgId = msg.message.message_id;
 
 	bot.getChatMember(chatId, userId).then((user) => {
-		if(user.status == "administrator" || user.status == "creator"){
+		if(user.status == "administrator"){
 			if (["ru","en"].indexOf(language) > -1) {
 				bot.editMessageText(admin.getString(string[language].setLanguage),
 					{

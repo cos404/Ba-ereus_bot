@@ -12,10 +12,10 @@ Command:
 Admin command:
 * /addr God of messages 5000 — Added rank "God of messages", which set for 5000
 * /language — Language selection
+* /delr God of messages — Delete rank "God of messages"
 
 ToDo:
 * /daily — lottery
 * /top — Top users
 * /topwin — Top users of winner
 * /bottom
-* /delr God of messages — Delete rank highlighting in output code blocks
