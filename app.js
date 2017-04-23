@@ -264,7 +264,6 @@ bot.on('message', (msg) => {
 });
 
 bot.on('callback_query', (msg) => {
-	if(msg.chat.type == "private") return;
 
 	let	language 	= msg.data,
 			chatId 		= msg.message.chat.id,
