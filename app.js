@@ -130,6 +130,32 @@ bot.onText(/\/rank( .+)?(@Bacereus_bot$)?$/, (msg, match) => {
 	)
 });
 
+bot.onText(/\/top(@Bacereus_bot$)?$|\/bottom(@Bacereus_bot$)?$|\/topWin(@Bacereus_bot$)?$/, (msg, match) => {
+	let chatId = msg.chat.id,
+			mod,
+			type;
+
+	if(match[0] == "/top"){
+		mod = "reputation";
+		type =  -1;
+	}
+	else if(match[0] == "/bottom"){
+		mod = "reputation";
+		type =  1;
+	}
+	else {
+		mod = "countWin";
+		type =  -1;
+	}
+
+	logic.getUsers(chatId, mod, type)
+	.then(
+		users => {
+			bot.sendMessage(chatId, users);
+		}
+	)
+});
+
 bot.onText(/\/addr (.+) (.+)(@Bacereus_bot$)?$/, (msg, match) => {
 	let	chatId = msg.chat.id,
 		userId = msg.from.id,
@@ -191,8 +217,6 @@ bot.onText(/\/log/, (msg, match) => {
 	let	userId = msg.from.id,
 		userName = msg.from.username,
 		chatId = msg.chat.id;
-
-	console.log(userId + " " + userName + " " + chatId);
 });
 
 bot.on('message', (msg) => {

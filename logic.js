@@ -29,6 +29,27 @@ Logic.prototype.addUser = function(chatId, userId, userName, userRep){
 	return promise;
 }
 
+Logic.prototype.getUsers = function(chatId, mod, type){
+	this.chatId = chatId;
+	this.mod = mod; //countWin || reputation
+	this.type = type; // -1 || 1
+	var users = "";
+	var obj = {};
+	obj[mod] = type;
+	var promise = new Promise(function(resolve, reject){
+		models.User.find({chatId: chatId}, function(err, user){
+			if (err) reject(err);
+			else if(user){
+				for(var key in user){
+					users += "\n" + user[key].userName + ": " + user[key][mod];
+				}
+				resolve(users);
+			}
+		}).limit(10).sort(obj);
+	});
+	return promise;
+}
+
 Logic.prototype.getRank = function(chatId, reputation){
 	this.chatId = chatId;
 	this.reputation = reputation;
