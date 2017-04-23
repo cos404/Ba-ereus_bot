@@ -35,7 +35,7 @@ Logic.prototype.getUsers = function(chatId, mod, type){
 	this.type = type; // -1 || 1
 	var users = "";
 	var obj = {};
-	obj[mod] = type;
+			obj[mod] = type;
 	var promise = new Promise(function(resolve, reject){
 		models.User.find({chatId: chatId}, function(err, user){
 			if (err) reject(err);
@@ -43,7 +43,7 @@ Logic.prototype.getUsers = function(chatId, mod, type){
 				for(var key in user){
 					users += "\n" + user[key].userName + ": " + user[key][mod];
 				}
-				resolve(users);
+				if(users) resolve(users);
 			}
 		}).limit(10).sort(obj);
 	});

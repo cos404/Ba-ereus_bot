@@ -11,7 +11,7 @@ Admin.prototype.addr = function(chatId, rank, reputation){
 	this.chatId = chatId;
 	this.rank = rank;
 	this.reputation = reputation;
-
+	console.log(chatId + " " + rank + " " + reputation);
 	var rankModel = new models.Rank({
 		chatId: chatId,
 		rank: rank,
@@ -42,6 +42,7 @@ Admin.prototype.delr = function(chatId, rank) {
 Admin.prototype.listr = function(chatId) {
 	this.chatId = chatId;
 	var ranks = "";
+
 	var promise = new Promise(function(resolve, reject){
 		models.Rank.find({chatId: chatId}, function(err, rank){
 			if (err) reject(err);
@@ -49,7 +50,7 @@ Admin.prototype.listr = function(chatId) {
 				for(var key in rank){
 					ranks += "\n" + rank[key].rank + ": " + rank[key].reputation;
 				}
-				resolve(ranks);
+				if(ranks) resolve(ranks);
 			}
 		}).sort({reputation: -1});
 		

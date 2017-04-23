@@ -45,7 +45,7 @@ bot.onText(/\/reg(@Bacereus_bot$)?$/, (msg, match) => {
 bot.onText(/\/regme(@Bacereus_bot$)?$/, (msg, match) => {
 	let chatId = msg.chat.id,
 		userId = msg.from.id,
-		userName = "@" + msg.from.username,
+		userName = msg.from.username,
 		randomVar = Math.floor((Math.random() * 10) + 1),
 		reputation;
 
@@ -74,21 +74,22 @@ bot.onText(/\/regme(@Bacereus_bot$)?$/, (msg, match) => {
 	});
 });
 
-bot.onText(/\/up (.+) (.+)$/, (msg, match) => { // /up @cosmos404 10
+bot.onText(/\/up(@Bacereus_bot)? (.+) (.+)$/, (msg, match) => { // /up cosmos404 10
 	let	chatId = msg.chat.id,
 		userId = msg.from.id,
 		userName = msg.from.username,
 		repUpName = match[1],
 		repUp = parseInt(match[2]);
 
-	Promise.all([	admin.getLanguage(chatId), 
-					logic.getReputation(chatId, userId, "id")	])
-	.then(
-		results => {
-			let	language = results[0],
-				reputation = results[1];
+		Promise.all([	admin.getLanguage(chatId), 
+									logic.getReputation(chatId, userId, "id"),
+									logic.getReputation(chatId, repUpName, "name")	])
+		.then(results => {
+						let	language = results[0],
+								reputation = results[1];
 
-			if(reputation < repUp) bot.sendMessage(chatId, admin.getString(string[language].upLittle));
+			if(reputation < repUp || repUp < 0) 
+				bot.sendMessage(chatId, admin.getString(string[language].upLittle));
 			else {
 				models.User.update({userName:repUpName, chatId: chatId}, {$inc:{reputation: +repUp}},(err, raw) => {
 					if (err) console.log(err);
@@ -97,12 +98,12 @@ bot.onText(/\/up (.+) (.+)$/, (msg, match) => { // /up @cosmos404 10
 					if (err) console.log(err);
 				});
 			}
-	})
-	.catch(err => {console.log(err)});
+		})
+		.catch(err => console.log(err));
 
 });
 
-bot.onText(/\/rank( .+)?(@Bacereus_bot$)?$/, (msg, match) => {
+bot.onText(/\/rank(@Bacereus_bot)? ( .+)?$/, (msg, match) => {
 	let	chatId = msg.chat.id,
 		user = (match[1]) ? match[1].trim() : msg.from.id,
 		type = (match[1]) ? "name" : "id";
@@ -156,26 +157,28 @@ bot.onText(/\/top(@Bacereus_bot$)?$|\/bottom(@Bacereus_bot$)?$|\/topWin(@Bacereu
 	)
 });
 
-bot.onText(/\/addr (.+) (.+)(@Bacereus_bot$)?$/, (msg, match) => {
+bot.onText(/\/addr(@Bacereus_bot)? (.+) (.+)$/, (msg, match) => {
 	let	chatId = msg.chat.id,
-		userId = msg.from.id,
-		rank = match[1],
-		reputation = match[2];
+			userId = msg.from.id,
+			rank = match[2],
+			reputation = match[3];
 
 	bot.getChatMember(chatId, userId).then((user) => {
-		if(user.status == "administrator"){
+		console.log(user.status);
+		if(["administrator", "creator"].indexOf(user.status) > -1){
 			admin.addr(chatId, rank, reputation);
-		};
+		}
+		else console.log("Error addr");
 	});
 });
 
-bot.onText(/\/delr (.+)(@Bacereus_bot$)?$/,(msg, match) => {
+bot.onText(/\/delr(@Bacereus_bot)? (.+)$/,(msg, match) => {
 	let	chatId = msg.chat.id,
 		userId = msg.from.id,
-		rank = match[1];
+		rank = match[2];
 
 	bot.getChatMember(chatId, userId).then((user) => {
-		if(user.status == "administrator"){
+		if(["administrator", "creator"].indexOf(user.status) > -1){
 			admin.delr(chatId, rank);
 		};
 	});
@@ -184,7 +187,6 @@ bot.onText(/\/delr (.+)(@Bacereus_bot$)?$/,(msg, match) => {
 bot.onText(/\/listr(@Bacereus_bot$)?$/,(msg, match) => {
 	let	chatId = msg.chat.id,
 		userId = msg.from.id;
-
 		admin.listr(chatId)
 		.then(
 			ranks => {
@@ -193,7 +195,7 @@ bot.onText(/\/listr(@Bacereus_bot$)?$/,(msg, match) => {
 		)
 });
 
-bot.onText(/\/language(@Bacereus_bot$)?$/, (msg, match) => {
+bot.onText(/\/language@Bacereus_bot$/, (msg, match) => {
 	let	chatId = msg.chat.id,
 		userId = msg.from.id,
 		options = {
@@ -206,17 +208,10 @@ bot.onText(/\/language(@Bacereus_bot$)?$/, (msg, match) => {
 		};
 
 	bot.getChatMember(chatId, userId).then((user) => {
-		if(user.status == "administrator"){
+		if(["administrator", "creator"].indexOf(user.status) > -1){
 			bot.sendMessage(chatId, 'Choose language:', options);
 		};
 	});
-
-});
-
-bot.onText(/\/log/, (msg, match) => {
-	let	userId = msg.from.id,
-		userName = msg.from.username,
-		chatId = msg.chat.id;
 });
 
 bot.on('message', (msg) => {
@@ -230,10 +225,7 @@ bot.on('message', (msg) => {
 			chatId: chatId,
 		});
 		chat.save(function(err){
-			if (err) {
-				console.log("Err chat.save: " + err);
-			}
-			else console.log("Chat added!");
+			if (err) console.log("Chat not added: " + err);
 		});
 	}
 	else if(!msgText.match(/\/(.+)/)){
@@ -242,7 +234,7 @@ bot.on('message', (msg) => {
 				if (err) console.log(err);
 			});
 		}
-		else if(msgText.split(' ').length <= 4 && msgText.trim().length <= 10) {
+		else if(msgText.split(' ').length < 5 || msgText.trim().length < 11) {
 			models.User.update({userId:userId, chatId: chatId}, {$inc:{reputation: -1}},(err, raw) => {
 				if (err) console.log(err);
 			});
@@ -257,7 +249,7 @@ bot.on('callback_query', (msg) => {
 		msgId = msg.message.message_id;
 
 	bot.getChatMember(chatId, userId).then((user) => {
-		if(user.status == "administrator"){
+		if(["administrator", "creator"].indexOf(user.status) > -1){
 			if (["ru","en"].indexOf(language) > -1) {
 				bot.editMessageText(admin.getString(string[language].setLanguage),
 					{
@@ -268,4 +260,10 @@ bot.on('callback_query', (msg) => {
 			}
 		};
 	});
+});
+
+bot.onText(/\/log/, (msg, match) => {
+	let	userId = msg.from.id,
+		userName = msg.from.username,
+		chatId = msg.chat.id;
 });
