@@ -4,16 +4,16 @@
  */
 
 'use strict';
-var config = require('./config.js'),
-	models = require('./models/index'),
-	Admin = require('./admin.js'),
-	Logic = require('./logic.js'),
-	string = require('./string.json'),
-	TelegramBot = require('node-telegram-bot-api');
+var config 			= require('./config.js'),
+		models 			= require('./models/index'),
+		Admin 			= require('./admin.js'),
+		Logic 			= require('./logic.js'),
+		string 			= require('./string.json'),
+		TelegramBot = require('node-telegram-bot-api');
 
-var	bot = new TelegramBot(config.telegram_api_key, {polling: true}),
-	admin = new Admin(),
-	logic = new Logic();
+var	bot 	= new TelegramBot(config.telegram_api_key, {polling: true}),
+		admin = new Admin(),
+		logic = new Logic();
 
 bot.getMe().then((me) => {
     console.log('Hello! My name is %s!', me.first_name);
@@ -22,18 +22,19 @@ bot.getMe().then((me) => {
 });
 
 bot.onText(/\/reg(@Bacereus_bot$)?$/, (msg, match) => {
-	let chatId = msg.chat.id,
-		userId = msg.from.id,
-		userName = "@" + msg.from.username,
-		rank;
+	if(msg.chat.type == "private") return;
+
+	let chatId 		= msg.chat.id,
+			userId	 	= msg.from.id,
+			userName 	= msg.from.username;
 
 	Promise.all([	logic.addUser(chatId, userId, userName, 0),
 					admin.getLanguage(chatId),
 					logic.getRank(chatId, 0)	])
 	.then(
 		results =>{
-			let language = results[1],
-				rank = results[2];
+			let language 	= results[1],
+					rank 			= results[2];
 			bot.sendMessage(chatId, admin.getString(string[language].reg, rank));
 	})
 	.catch(err => {
@@ -43,50 +44,55 @@ bot.onText(/\/reg(@Bacereus_bot$)?$/, (msg, match) => {
 });	
 
 bot.onText(/\/regme(@Bacereus_bot$)?$/, (msg, match) => {
+	if(msg.chat.type == "private") return;
+
 	let chatId = msg.chat.id,
 		userId = msg.from.id,
 		userName = msg.from.username,
 		randomVar = Math.floor((Math.random() * 10) + 1),
 		reputation;
-
+	
 	switch(true) {
 		case 	randomVar <= 5: 
-				reputation = -10;
-				break;		
+					reputation = -10;
+					break;		
 		case 	randomVar > 5: 
-				reputation = 10;
-				break;
-	};
+					reputation = 10;
+					break;
+	}
 
 	Promise.all([	logic.addUser(chatId, userId, userName, reputation),
 					admin.getLanguage(chatId),
 					logic.getRank(chatId, reputation)	])
 	.then(
 		results => {
-			let	language = results[1],
-				rank = results[2];
+			let	language 	= results[1],
+					rank 			= results[2];
+
 			if(reputation > 0)	bot.sendMessage(chatId, admin.getString(string[language].regmeGood, rank, reputation));
 			else bot.sendMessage(chatId, admin.getString(string[language].regmeBad, rank, reputation));
 	})
 	.catch(err => {
 		console.log(err);
-		admin.getLanguage(chatId).then(language=>{bot.sendMessage(chatId, admin.getString(string[language].yetReg));})
+		admin.getLanguage(chatId).then(language=>{bot.sendMessage(chatId, admin.getString(string[language].yetReg))})
 	});
 });
 
 bot.onText(/\/up(@Bacereus_bot)? (.+) (.+)$/, (msg, match) => { // /up cosmos404 10
-	let	chatId = msg.chat.id,
-		userId = msg.from.id,
-		userName = msg.from.username,
-		repUpName = match[1],
-		repUp = parseInt(match[2]);
+	if(msg.chat.type == "private") return;
+
+	let	chatId 		= msg.chat.id,
+			userId 		= msg.from.id,
+			userName 	= msg.from.username,
+			repUpName = match[1],
+			repUp 		= parseInt(match[2]);
 
 		Promise.all([	admin.getLanguage(chatId), 
 									logic.getReputation(chatId, userId, "id"),
 									logic.getReputation(chatId, repUpName, "name")	])
 		.then(results => {
-						let	language = results[0],
-								reputation = results[1];
+						let	language 		= results[0],
+								reputation 	= results[1];
 
 			if(reputation < repUp || repUp < 0) 
 				bot.sendMessage(chatId, admin.getString(string[language].upLittle));
@@ -104,9 +110,11 @@ bot.onText(/\/up(@Bacereus_bot)? (.+) (.+)$/, (msg, match) => { // /up cosmos404
 });
 
 bot.onText(/\/rank(@Bacereus_bot)? ( .+)?$/, (msg, match) => {
-	let	chatId = msg.chat.id,
-		user = (match[1]) ? match[1].trim() : msg.from.id,
-		type = (match[1]) ? "name" : "id";
+	if(msg.chat.type == "private") return;
+
+	let	chatId 	= msg.chat.id,
+			user 		= (match[1]) ? match[1].trim() : msg.from.id,
+			type 		= (match[1]) ? "name" : "id";
 
 	admin.getLanguage(chatId)
 	.then(
@@ -132,6 +140,8 @@ bot.onText(/\/rank(@Bacereus_bot)? ( .+)?$/, (msg, match) => {
 });
 
 bot.onText(/\/top(@Bacereus_bot$)?$|\/bottom(@Bacereus_bot$)?$|\/topWin(@Bacereus_bot$)?$/, (msg, match) => {
+	if(msg.chat.type == "private") return;
+
 	let chatId = msg.chat.id,
 			mod,
 			type;
@@ -158,10 +168,12 @@ bot.onText(/\/top(@Bacereus_bot$)?$|\/bottom(@Bacereus_bot$)?$|\/topWin(@Bacereu
 });
 
 bot.onText(/\/addr(@Bacereus_bot)? (.+) (.+)$/, (msg, match) => {
-	let	chatId = msg.chat.id,
-			userId = msg.from.id,
-			rank = match[2],
-			reputation = match[3];
+	if(msg.chat.type == "private") return;
+
+	let	chatId 			= msg.chat.id,
+			userId 			= msg.from.id,
+			rank 				= match[2],
+			reputation 	= match[3];
 
 	bot.getChatMember(chatId, userId).then((user) => {
 		console.log(user.status);
@@ -173,20 +185,25 @@ bot.onText(/\/addr(@Bacereus_bot)? (.+) (.+)$/, (msg, match) => {
 });
 
 bot.onText(/\/delr(@Bacereus_bot)? (.+)$/,(msg, match) => {
-	let	chatId = msg.chat.id,
-		userId = msg.from.id,
-		rank = match[2];
+	if(msg.chat.type == "private") return;
+
+	let	chatId 	= msg.chat.id,
+			userId 	= msg.from.id,
+			rank 		= match[2];
 
 	bot.getChatMember(chatId, userId).then((user) => {
 		if(["administrator", "creator"].indexOf(user.status) > -1){
 			admin.delr(chatId, rank);
-		};
+		}
 	});
 });
 
 bot.onText(/\/listr(@Bacereus_bot$)?$/,(msg, match) => {
+	if(msg.chat.type == "private") return;
+
 	let	chatId = msg.chat.id,
-		userId = msg.from.id;
+			userId = msg.from.id;
+
 		admin.listr(chatId)
 		.then(
 			ranks => {
@@ -196,41 +213,45 @@ bot.onText(/\/listr(@Bacereus_bot$)?$/,(msg, match) => {
 });
 
 bot.onText(/\/language@Bacereus_bot$/, (msg, match) => {
-	let	chatId = msg.chat.id,
-		userId = msg.from.id,
-		options = {
-			reply_markup: JSON.stringify({
-				inline_keyboard: [
-					[{ text: 'ru', callback_data: 'ru' }],
-					[{ text: 'en', callback_data: 'en' }]
-				]
-			})
-		};
+	if(msg.chat.type == "private") return;
+
+	let	chatId 	= msg.chat.id,
+			userId 	= msg.from.id,
+			options = {
+				reply_markup: JSON.stringify({
+					inline_keyboard: [
+						[{ text: 'ru', callback_data: 'ru' }],
+						[{ text: 'en', callback_data: 'en' }]
+					]
+				})
+			}
 
 	bot.getChatMember(chatId, userId).then((user) => {
 		if(["administrator", "creator"].indexOf(user.status) > -1){
 			bot.sendMessage(chatId, 'Choose language:', options);
-		};
+		}
 	});
 });
 
 bot.on('message', (msg) => {
-	let	chatId = msg.chat.id,
-		userId = msg.from.id,
-		msgText = msg.text,
-		chatTitle = msg.chat.title;
+	if(msg.chat.type == "private") return;
+
+	let	chatId 		= msg.chat.id,
+			userId 		= msg.from.id,
+			msgText 	= msg.text,
+			chatTitle = msg.chat.title;
 
 	if(msg.new_chat_participant != undefined && msg.new_chat_participant.id == 287114980){
 		let chat = new models.Chat({
 			chatId: chatId,
 		});
-		chat.save(function(err){
+		chat.save((err) => {
 			if (err) console.log("Chat not added: " + err);
 		});
 	}
 	else if(!msgText.match(/\/(.+)/)){
 		if(msgText.split(' ').length > 10 && msgText.trim().length > 25){
-			models.User.update({userId:userId, chatId: chatId}, {$inc:{reputation: +3}},(err, raw) => {
+			models.User.update({userId:userId, chatId: chatId}, {$inc:{reputation: +2}},(err, raw) => {
 				if (err) console.log(err);
 			});
 		}
@@ -243,10 +264,12 @@ bot.on('message', (msg) => {
 });
 
 bot.on('callback_query', (msg) => {
-	let	language = msg.data,
-		chatId = msg.message.chat.id,
-		userId = msg.from.id,
-		msgId = msg.message.message_id;
+	if(msg.chat.type == "private") return;
+
+	let	language 	= msg.data,
+			chatId 		= msg.message.chat.id,
+			userId 		= msg.from.id,
+			msgId 		= msg.message.message_id;
 
 	bot.getChatMember(chatId, userId).then((user) => {
 		if(["administrator", "creator"].indexOf(user.status) > -1){
@@ -258,12 +281,13 @@ bot.on('callback_query', (msg) => {
 					});
 				admin.setLanguage(chatId, language);
 			}
-		};
+		}
 	});
 });
 
 bot.onText(/\/log/, (msg, match) => {
-	let	userId = msg.from.id,
-		userName = msg.from.username,
-		chatId = msg.chat.id;
+	if(msg.chat.type == "private") return;
+	let	userId 		= msg.from.id,
+			userName 	= msg.from.username,
+			chatId 		= msg.chat.id;
 });
