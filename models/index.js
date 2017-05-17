@@ -6,7 +6,7 @@
  */
 
 module.exports = {
-	User: require('./user.js'),
-	Rank: require('./rank.js'),
-	Chat: require('./chat.js'),
+  User: require('./user.js'),
+  Rank: require('./rank.js'),
+  Chat: require('./chat.js'),
 };
